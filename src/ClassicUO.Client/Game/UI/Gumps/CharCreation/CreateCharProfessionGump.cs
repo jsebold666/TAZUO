@@ -37,6 +37,7 @@ using ClassicUO.Game.Managers;
 using ClassicUO.Game.UI.Controls;
 using ClassicUO.Input;
 using ClassicUO.Assets;
+using Microsoft.Xna.Framework;
 
 namespace ClassicUO.Game.UI.Gumps.CharCreation
 {
@@ -173,24 +174,14 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
             ClilocLoader localization = ClilocLoader.Instance;
 
-            ResizePic background = new ResizePic(3000)
-            {
-                Width = 175,
-                Height = 34
-            };
-
-            background.SetTooltip(localization.GetString(info.Description), 250);
-
-            Add(background);
+           
 
             Add
-            (
-                new Label(localization.GetString(info.Localization), true, 0x00, font: 1)
-                {
-                    X = 7,
-                    Y = 8
-                }
-            );
+                (
+                    new TextBox(localization.GetString(info.Localization), TrueTypeLoader.EMBEDDED_FONT, 18, 300, Color.Orange, strokeEffect: false) { X = 190, Y = 8, AcceptMouseInput = false }
+
+                );
+
 
             Add(new GumpPic(121, -12, info.Graphic, 0));
         }

@@ -266,7 +266,7 @@ namespace ClassicUO.Game.Scenes
             {
                 case LoginSteps.Main:
                     PopupMessage = null;
-
+                    UIManager.GetGump<SelectServerBackground>()?.Dispose();
                     return new LoginGump(this);
 
                 case LoginSteps.Connecting:
@@ -274,6 +274,8 @@ namespace ClassicUO.Game.Scenes
                 case LoginSteps.LoginInToServer:
                 case LoginSteps.EnteringBritania:
                     UIManager.GetGump<LoginBackground>()?.Dispose();
+                    UIManager.GetGump<SelectServerBackground>()?.Dispose();
+                    UIManager.GetGump<CharacterSelectionBackground>()?.Dispose();
                     Client.Game.GameCursor.IsLoading = CurrentLoginStep != LoginSteps.PopUpMessage;
 
                     return GetLoadingScreen();
@@ -281,20 +283,24 @@ namespace ClassicUO.Game.Scenes
                 case LoginSteps.CharacterCreationDone:
                     Client.Game.GameCursor.IsLoading = CurrentLoginStep != LoginSteps.PopUpMessage;
                     UIManager.GetGump<LoginBackground>()?.Dispose();
+                    
                     return GetLoadingScreen();
 
                 case LoginSteps.CharacterSelection:
                     UIManager.GetGump<LoginBackground>()?.Dispose();
+                    UIManager.GetGump<SelectServerBackground>()?.Dispose();
+                    UIManager.Add(new CharacterSelectionBackground());
                     return new CharacterSelectionGump();
 
                 case LoginSteps.ServerSelection:
                     _pingTime = Time.Ticks + 60000; // reset ping timer
-
+                    UIManager.GetGump<LoginBackground>()?.Dispose();
+                    UIManager.GetGump<CharacterSelectionBackground>()?.Dispose();
                     return new ServerSelectionGump();
 
                 case LoginSteps.CharacterCreation:
                     _pingTime = Time.Ticks + 60000; // reset ping timer
-
+                    UIManager.Add(new CharacterSelectionBackground());
                     return new CharCreationGump(this);
             }
 

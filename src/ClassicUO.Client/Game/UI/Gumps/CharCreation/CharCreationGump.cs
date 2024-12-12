@@ -82,7 +82,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             for (int i = 0; i < _skillsCount; i++)
             {
                 int skillIndex = info.SkillDefVal[i, 0];
-
+                 
                 if (skillIndex >= _character.Skills.Length)
                 {
                     continue;

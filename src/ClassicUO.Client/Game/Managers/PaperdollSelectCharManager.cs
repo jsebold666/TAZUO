@@ -39,7 +39,7 @@ namespace ClassicUO.Game.Managers
 
         private Dictionary<string, PaperdollItem> items = new Dictionary<string, PaperdollItem>();
 
-        private string savePath;
+        private string savePath = Path.Combine(ProfileManager.ProfilePath, "paperdollSelectCharManager.json");
 
         private static PaperdollSelectCharManager instance;
 
@@ -120,7 +120,7 @@ namespace ClassicUO.Game.Managers
                 {
                     WriteIndented = true
                 });
-                savePath = Path.Combine(CUOEnviroment.ExecutablePath, "Data", "Profiles", Settings.GlobalSettings.Username, World.ServerName, World.Player.Name, "paperdollSelectCharManager.json");
+                savePath = Path.Combine(ProfileManager.ProfilePath, "paperdollSelectCharManager.json");
                 File.WriteAllText(savePath, json);
                 items.Clear();
             }
@@ -132,7 +132,7 @@ namespace ClassicUO.Game.Managers
 
         public void Load()
         {
-            savePath = Path.Combine(CUOEnviroment.ExecutablePath, "Data", "Profiles", Settings.GlobalSettings.Username, World.ServerName, World.Player.Name, "paperdollSelectCharManager.json");
+            
             if (File.Exists(savePath))
             {
                 try
