@@ -51,9 +51,9 @@ using Cyotek.Drawing.BitmapFont;
 using System.IO;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Drawing;
 using ClassicUO.Game.UI.Controls;
 using static ClassicUO.Game.UI.Controls.PaperDollInteractable;
-using Microsoft.Xna.Framework;
 
 namespace ClassicUO.Game.UI.Gumps.Login
 {
@@ -63,7 +63,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
         private const ushort NORMAL_COLOR = 0x0481;
         private uint _selectedCharacter;
         private static Art art { get; set; }
-        private ImageButton button;
+
         public CharacterSelectionGump() : base(0, 0)
         {
             CanCloseWithRightClick = false;
@@ -74,7 +74,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
             int listTitleY = 106;
 
             LoginScene loginScene = Client.Game.GetScene<LoginScene>();
-            
+
             string lastCharName = LastCharacterManager.GetLastCharacter(LoginScene.Account, World.ServerName);
             string lastSelected = loginScene.Characters.FirstOrDefault(o => o == lastCharName);
 
@@ -90,15 +90,15 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             if (!string.IsNullOrEmpty(lastSelected))
             {
-                _selectedCharacter = (uint) Array.IndexOf(loginScene.Characters, lastSelected);
+                _selectedCharacter = (uint)Array.IndexOf(loginScene.Characters, lastSelected);
             }
             else if (loginScene.Characters.Length > 0)
             {
                 _selectedCharacter = 0;
             }
 
-            
-            bool isAsianLang = string.Compare(Settings.GlobalSettings.Language, "CHT", StringComparison.InvariantCultureIgnoreCase) == 0 || 
+
+            bool isAsianLang = string.Compare(Settings.GlobalSettings.Language, "CHT", StringComparison.InvariantCultureIgnoreCase) == 0 ||
                 string.Compare(Settings.GlobalSettings.Language, "KOR", StringComparison.InvariantCultureIgnoreCase) == 0 ||
                 string.Compare(Settings.GlobalSettings.Language, "JPN", StringComparison.InvariantCultureIgnoreCase) == 0;
 
@@ -106,15 +106,27 @@ namespace ClassicUO.Game.UI.Gumps.Login
             byte font = (byte)(isAsianLang ? 1 : 2);
             ushort hue = (ushort)(isAsianLang ? 0 : 0);
 
-            UIManager.Add(new CharacterSelectionBackground());
-
+            Add
+            (
+                new Label(ClilocLoader.Instance.GetString(3000050, "Character Selection"), unicode, hue, font: font)
+                {
+                    X = 447,
+                    Y = listTitleY
+                },
+                1
+            );
 
             Add
-                (
-                    new TextBox(ClilocLoader.Instance.GetString(3000050, "Character Selection"), TrueTypeLoader.EMBEDDED_FONT, 28, 300, Color.Orange, strokeEffect: true) { X = 447, Y = listTitleY, AcceptMouseInput = false }
-
-                );
-
+              (
+                 new AlphaBlendControl
+                 {
+                     X = 0,
+                     Y = 300,
+                     Width = 1024,
+                     Height = 300,
+                     Hue = 0 // Cor preta (0x0000)
+                 }
+              );
 
             for (int i = 0, valid = 0; i < loginScene.Characters.Length; i++)
             {
@@ -137,10 +149,10 @@ namespace ClassicUO.Game.UI.Gumps.Login
                             break;
                         }
                     }
-                    
+
                     Add
                     (
-                        new CharacterEntryGump((uint) i, character, bodyId, SelectCharacter, LoginCharacter)
+                        new CharacterEntryGump((uint)i, character, bodyId, SelectCharacter, LoginCharacter)
                         {
                             X = 30 + posInList * 150,
                             Y = yOffset + posInList * i + 3,
@@ -155,24 +167,21 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             if (CanCreateChar(loginScene))
             {
-
-                Add(button = new ImageButton(
-                    30,
-                    210,
-                    Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_normal_new.png"),
-                    Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_pressed_new.png"),
-                    Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_hover_new.png")
-                ));
-
-                button.OnButtonClick += () =>
-                {
-                    OnButtonClick(0);
-                };
+                Add
+                (
+                    new Button((int)Buttons.New, 0x159D, 0x159F, 0x159E)
+                    {
+                        X = 30,
+                        Y = 210 + yBonus,
+                        ButtonAction = ButtonAction.Activate
+                    },
+                    1
+                );
             }
 
             Add
             (
-                new Button((int) Buttons.Delete, 0x159A, 0x159C, 0x159B)
+                new Button((int)Buttons.Delete, 0x159A, 0x159C, 0x159B)
                 {
                     X = 940,
                     Y = 210 + yBonus,
@@ -181,32 +190,27 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 1
             );
 
-            Add(button = new ImageButton(
-               30,
-               680,
-               Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_normal_prev.png"),
-               Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_pressed_prev.png"),
-               Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_hover_prev.png")
-           ));
+            Add
+            (
+                new Button((int)Buttons.Prev, 0x15A1, 0x15A3, 0x15A2)
+                {
+                    X = 30,
+                    Y = 680,
+                    ButtonAction = ButtonAction.Activate
+                },
+                1
+            );
 
-            button.OnButtonClick += () =>
-            {
-                OnButtonClick(3);
-            };
-
-            Add(button = new ImageButton(
-               920,
-               680,
-               Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_normal_next.png"),
-               Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_pressed_next.png"),
-               Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_hover_next.png")
-           ));
-
-            button.OnButtonClick += () =>
-            {
-                OnButtonClick(2);
-            };
-
+            Add
+            (
+                new Button((int)Buttons.Next, 0x15A4, 0x15A6, 0x15A5)
+                {
+                    X = 980,
+                    Y = 680,
+                    ButtonAction = ButtonAction.Activate
+                },
+                1
+            );
 
             AcceptKeyboardInput = true;
             ChangePage(1);
@@ -231,7 +235,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
         {
             base.OnControllerButtonUp(button);
 
-            if(button == SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A)
+            if (button == SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A)
             {
                 LoginCharacter(_selectedCharacter);
             }
@@ -249,7 +253,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
         {
             LoginScene loginScene = Client.Game.GetScene<LoginScene>();
 
-            switch ((Buttons) buttonID)
+            switch ((Buttons)buttonID)
             {
                 case Buttons.Delete:
                     DeleteCharacter(loginScene);
@@ -262,17 +266,14 @@ namespace ClassicUO.Game.UI.Gumps.Login
                     break;
 
                 case Buttons.Next:
-                    UIManager.GetGump<CharacterSelectionBackground>()?.Dispose();
                     UIManager.GetGump<LoginBackground>()?.Dispose();
-                    UIManager.GetGump<SelectServerBackground>()?.Dispose();
-                    UIManager.GetGump<CharacterSelectionBackground>()?.Dispose();
                     LoginCharacter(_selectedCharacter);
 
                     break;
 
                 case Buttons.Prev:
-                    UIManager.GetGump<CharacterSelectionBackground>()?.Dispose();
                     loginScene.StepBack();
+
                     break;
             }
 
@@ -300,7 +301,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                         LoginButtons.OK | LoginButtons.Cancel,
                         buttonID =>
                         {
-                            if (buttonID == (int) LoginButtons.OK)
+                            if (buttonID == (int)LoginButtons.OK)
                             {
                                 loginScene.DeleteCharacter(_selectedCharacter);
                             }
@@ -347,7 +348,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
         private class CharacterEntryGump : Control
         {
-            private readonly TextBox _label;
+            private readonly CustomLabelControl _label;
             private readonly Action<uint> _loginFn;
             private readonly Action<uint> _selectedFn;
             private readonly uint _bodyID;
@@ -441,13 +442,21 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 }
 
                 // Char Name
-
-
                 Add
-               (
-                   _label = new TextBox(character, TrueTypeLoader.EMBEDDED_FONT, 18, 300, Color.Orange, strokeEffect: true) { X = 15, Y = 5, AcceptMouseInput = false }
-
-               );
+                (
+                    _label = new CustomLabelControl
+                    (
+                        character,
+                        false,
+                        NORMAL_COLOR,
+                        135,
+                        5,
+                        align: TEXT_ALIGN_TYPE.TS_CENTER
+                    )
+                    {
+                        X = 0
+                    }
+                );
 
                 AcceptMouseInput = true;
             }
@@ -456,7 +465,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             public ushort Hue
             {
-                get => (ushort)_label.Hue;
+                get => _label.Hue;
                 set => _label.Hue = value;
             }
 

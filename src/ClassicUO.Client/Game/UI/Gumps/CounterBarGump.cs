@@ -102,6 +102,8 @@ namespace ClassicUO.Game.UI.Gumps
             BuildGump();
 
             CurrentCounterBarGump = this;
+
+            SetInScreen();
         }
 
         public override GumpType GumpType => GumpType.CounterBar;
@@ -531,7 +533,7 @@ namespace ClassicUO.Game.UI.Gumps
                 }
             }
 
-            private static void GetAmount(Item parent, ushort graphic, ushort hue, ref int amount)
+            private void GetAmount(Item parent, ushort graphic, ushort hue, ref int amount)
             {
                 if (parent == null)
                 {
@@ -547,6 +549,7 @@ namespace ClassicUO.Game.UI.Gumps
                     if (item.Graphic == graphic && item.Hue == hue && item.Exists)
                     {
                         amount += item.Amount;
+                        SetTooltip(item);
                     }
                 }
             }

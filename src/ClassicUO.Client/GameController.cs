@@ -462,6 +462,7 @@ namespace ClassicUO
             }
 
             UIManager.Update();
+            LegionScripting.LegionScripting.OnUpdate();
 
             if (Time.Ticks >= _nextSlowUpdate)
             {
@@ -944,6 +945,15 @@ namespace ClassicUO
                     Controller.OnButtonDown(sdlEvent->cbutton);
                     UIManager.KeyboardFocusControl?.InvokeControllerButtonDown((SDL_GameControllerButton)sdlEvent->cbutton.button);
                     Scene.OnControllerButtonDown(sdlEvent->cbutton);
+
+                    if (sdlEvent->cbutton.button == (byte)SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN)
+                    {
+                        UIManager.OnMouseWheel(false);
+                    }
+                    else if (sdlEvent->cbutton.button == (byte)SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP)
+                    {
+                        UIManager.OnMouseWheel(true);
+                    }
 
                     if (sdlEvent->cbutton.button == (byte)SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSTICK)
                     {
