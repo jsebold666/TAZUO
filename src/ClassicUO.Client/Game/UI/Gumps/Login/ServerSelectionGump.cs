@@ -57,8 +57,6 @@ namespace ClassicUO.Game.UI.Gumps.Login
         private const ushort SELECTED_COLOR = 0x0481;
         private const ushort NORMAL_COLOR = 0x0481;
         private ImageButton button;
-        // Certifique-se de que o arquivo está no local especificado
-        private Texture2D textureBtn = PNGLoader.Instance.GetImageTexture(Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_normal_next.png"));
 
         public ServerSelectionGump() : base(0, 0)
         {
@@ -94,10 +92,9 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             if (Client.Version >= ClientVersion.CV_500A)
             {
-                ushort textColor = 0xFFFF;
                 Add
                 (
-                    new TextBox(ClilocLoader.Instance.GetString(1044579), TrueTypeLoader.EMBEDDED_FONT, 16, 300, Color.Orange, strokeEffect: true) { X = 220, Y = 70, AcceptMouseInput = true }
+                    new TextBox(ClilocLoader.Instance.GetString(1044579), TrueTypeLoader.EMBEDDED_FONT, 16, 300, Color.Orange, strokeEffect: true) { X = 210, Y = 70, AcceptMouseInput = true }
                  
                 ); // "Select which shard to play on:"
 
@@ -105,7 +102,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 {
                     Add
                     (
-                        new TextBox(ClilocLoader.Instance.GetString(1044577), TrueTypeLoader.EMBEDDED_FONT, 16, 300, Color.Orange, strokeEffect: true) { X = 680, Y = 70, AcceptMouseInput = true }
+                        new TextBox(ClilocLoader.Instance.GetString(1044577), TrueTypeLoader.EMBEDDED_FONT, 16, 300, Color.Orange, strokeEffect: true) { X = 650, Y = 70, AcceptMouseInput = true }
                     ); // "Latency:"
                    
 
@@ -115,18 +112,16 @@ namespace ClassicUO.Game.UI.Gumps.Login
             }
             else
             {
-                ushort textColor = 0x0481;
-
                 Add
                 (
      
-                    new TextBox(ResGumps.SelectWhichShardToPlayOn, TrueTypeLoader.EMBEDDED_FONT, 16, 300, Color.Orange, strokeEffect: true) { X = 220, Y = 70, AcceptMouseInput = true }
+                    new TextBox(ResGumps.SelectWhichShardToPlayOn, TrueTypeLoader.EMBEDDED_FONT, 16, 300, Color.Orange, strokeEffect: true) { X = 210, Y = 70, AcceptMouseInput = true }
 
                 );
 
                 Add
                 (
-                    new TextBox(ResGumps.Latency, TrueTypeLoader.EMBEDDED_FONT, 16, 300, Color.Orange, strokeEffect: true) { X = 680, Y = 70, AcceptMouseInput = true }
+                    new TextBox(ResGumps.Latency, TrueTypeLoader.EMBEDDED_FONT, 16, 300, Color.Orange, strokeEffect: true) { X = 650, Y = 70, AcceptMouseInput = true }
                 );
 
             }
@@ -166,7 +161,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                     Y = 620,
                     Width = 540,
                     Height = 85,
-                    Hue = 0x4EA // Cor preta (0x0000)
+                    Hue = 0x0000 // Cor preta (0x0000)
                 }
              );
 
@@ -302,8 +297,8 @@ namespace ClassicUO.Game.UI.Gumps.Login
                (
                   _alphaBlendControl = new AlphaBlendControl
                   {
-                      X = 0,
-                      Width = 620,
+                      X = 30,
+                      Width = 640,
                       Height = 30,
                       Hue = 0 // Cor preta (0x0000)
                   }
@@ -312,13 +307,13 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
                 Add
                 (
-                    _serverName = new TextBox(entry.Name, TrueTypeLoader.EMBEDDED_FONT, 18, 300, Color.Orange, strokeEffect: false) { X = 74, AcceptMouseInput = true }
+                    _serverName = new TextBox(entry.Name, TrueTypeLoader.EMBEDDED_FONT, 18, 300, Color.Orange, strokeEffect: false) { X = 74, Y = 6, AcceptMouseInput = true }
                     
                 );
 
                 Add
                 (
-                    _server_ping = new TextBox(CUOEnviroment.NoServerPing ? string.Empty : "-", TrueTypeLoader.EMBEDDED_FONT, 18, 70, Color.Orange, strokeEffect: false) { X = 540, AcceptMouseInput = true }
+                    _server_ping = new TextBox(CUOEnviroment.NoServerPing ? string.Empty : "-", TrueTypeLoader.EMBEDDED_FONT, 18, 70, Color.Orange, strokeEffect: false) { X = 500, Y = 6, AcceptMouseInput = true }
         
                 );
 
@@ -334,8 +329,8 @@ namespace ClassicUO.Game.UI.Gumps.Login
             protected override void OnMouseEnter(int x, int y)
             {
                 base.OnMouseEnter(x, y);
-                _alphaBlendControl.AlphaChanged(0, 0xff0);
-               _serverName.IsFocused = true;
+                _alphaBlendControl.Hue = 0x7EA; // Cor preta original
+                _serverName.IsFocused = true;
                 _server_ping.IsFocused = true;
             }
 
@@ -343,7 +338,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
             {
                 base.OnMouseExit(x, y);
 
-                _alphaBlendControl.AlphaChanged(0xff0, 0);
+                _alphaBlendControl.Hue = 0x0000; // Cor preta original
                 _serverName.IsFocused = false;
                 _server_ping.IsFocused = false;
             }

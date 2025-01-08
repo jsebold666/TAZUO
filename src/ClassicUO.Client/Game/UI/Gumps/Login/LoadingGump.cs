@@ -68,7 +68,17 @@ namespace ClassicUO.Game.UI.Gumps.Login
             ushort hue = (ushort)(isAsianLang ? 0xFFFF : 0x0386);
 
 
-            UIManager.Add(new SelectServerBackground());
+            Add
+              (
+                 new SquareBlendControl
+                 {
+                     X = 0,
+                     Y = 0,
+                     Width = 1024,
+                     Height = 768,
+                     Hue = 0x1AF // Cor preta (0x0000)
+                 }
+              );
 
 
 

@@ -343,7 +343,7 @@ namespace ClassicUO.Game.Scenes
 
                     case LoginSteps.EnteringBritania:
                         labelText = ClilocLoader.Instance.GetString(3000001, ResGeneral.EnteringBritannia); // Entering Britania...
-
+                        UIManager.GetGump<SelectServerBackground>()?.Dispose();
                         break;
 
                     case LoginSteps.CharacterCreationDone:
@@ -352,7 +352,7 @@ namespace ClassicUO.Game.Scenes
                         break;
                 }
             }
-
+            UIManager.GetGump<SelectServerBackground>()?.Dispose();
             return new LoadingGump(labelText, showButtons, OnLoadingGumpButtonClick);
         }
 

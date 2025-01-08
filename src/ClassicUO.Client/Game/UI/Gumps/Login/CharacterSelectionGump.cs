@@ -51,17 +51,19 @@ using Cyotek.Drawing.BitmapFont;
 using System.IO;
 using System.Collections.Generic;
 using System.Text.Json;
-using System.Drawing;
 using ClassicUO.Game.UI.Controls;
 using static ClassicUO.Game.UI.Controls.PaperDollInteractable;
+using FontStashSharp.RichText;
+using Microsoft.Xna.Framework;
 
 namespace ClassicUO.Game.UI.Gumps.Login
 {
     internal class CharacterSelectionGump : Gump
     {
-        private const ushort SELECTED_COLOR = 0x0481;
-        private const ushort NORMAL_COLOR = 0x0481;
+        private const ushort SELECTED_COLOR = 0xAAF;
+        private const ushort NORMAL_COLOR = 0xAAF;
         private uint _selectedCharacter;
+        private ImageButton button;
         private static Art art { get; set; }
 
         public CharacterSelectionGump() : base(0, 0)
@@ -107,26 +109,11 @@ namespace ClassicUO.Game.UI.Gumps.Login
             ushort hue = (ushort)(isAsianLang ? 0 : 0);
 
             Add
-            (
-                new Label(ClilocLoader.Instance.GetString(3000050, "Character Selection"), unicode, hue, font: font)
-                {
-                    X = 447,
-                    Y = listTitleY
-                },
-                1
-            );
+               (
+                   new TextBox(ClilocLoader.Instance.GetString(3000050, "Character Selection"), TrueTypeLoader.EMBEDDED_FONT, 30, 300, Color.Orange, strokeEffect: true) { X = 447, Y = listTitleY, AcceptMouseInput = true }
 
-            Add
-              (
-                 new AlphaBlendControl
-                 {
-                     X = 0,
-                     Y = 300,
-                     Width = 1024,
-                     Height = 300,
-                     Hue = 0 // Cor preta (0x0000)
-                 }
-              );
+               );
+
 
             for (int i = 0, valid = 0; i < loginScene.Characters.Length; i++)
             {
@@ -190,27 +177,32 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 1
             );
 
-            Add
-            (
-                new Button((int)Buttons.Prev, 0x15A1, 0x15A3, 0x15A2)
-                {
-                    X = 30,
-                    Y = 680,
-                    ButtonAction = ButtonAction.Activate
-                },
-                1
-            );
+            Add(button = new ImageButton(
+                30,
+                680,
+                Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_normal_prev.png"),
+                Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_pressed_prev.png"),
+                Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_hover_prev.png")
+            ));
 
-            Add
-            (
-                new Button((int)Buttons.Next, 0x15A4, 0x15A6, 0x15A5)
-                {
-                    X = 980,
-                    Y = 680,
-                    ButtonAction = ButtonAction.Activate
-                },
-                1
-            );
+            button.OnButtonClick += () =>
+            {
+                OnButtonClick(3);
+            };
+
+            Add(button = new ImageButton(
+               920,
+               680,
+               Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_normal_next.png"),
+               Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_pressed_next.png"),
+               Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_hover_next.png")
+           ));
+
+            button.OnButtonClick += () =>
+            {
+                OnButtonClick(2);
+            };
+
 
             AcceptKeyboardInput = true;
             ChangePage(1);
@@ -267,6 +259,8 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
                 case Buttons.Next:
                     UIManager.GetGump<LoginBackground>()?.Dispose();
+                    UIManager.GetGump<CharacterSelectionBackground>()?.Dispose();
+                    UIManager.GetGump<SelectServerBackground>()?.Dispose();
                     LoginCharacter(_selectedCharacter);
 
                     break;
@@ -334,6 +328,9 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             if (loginScene.Characters != null && loginScene.Characters.Length > index && !string.IsNullOrEmpty(loginScene.Characters[index]))
             {
+                UIManager.GetGump<LoginBackground>()?.Dispose();
+                UIManager.GetGump<CharacterSelectionBackground>()?.Dispose();
+                UIManager.GetGump<SelectServerBackground>()?.Dispose();
                 loginScene.SelectCharacter(index);
             }
         }
@@ -348,7 +345,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
         private class CharacterEntryGump : Control
         {
-            private readonly CustomLabelControl _label;
+            private readonly TextBox _label;
             private readonly Action<uint> _loginFn;
             private readonly Action<uint> _selectedFn;
             private readonly uint _bodyID;
@@ -442,21 +439,13 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 }
 
                 // Char Name
+
+
                 Add
-                (
-                    _label = new CustomLabelControl
-                    (
-                        character,
-                        false,
-                        NORMAL_COLOR,
-                        135,
-                        5,
-                        align: TEXT_ALIGN_TYPE.TS_CENTER
-                    )
-                    {
-                        X = 0
-                    }
-                );
+               (
+                   _label = new TextBox(character, TrueTypeLoader.EMBEDDED_FONT, 16, 190, Color.Orange, align: TextHorizontalAlignment.Center, strokeEffect: true) { AcceptMouseInput = true }
+
+               );
 
                 AcceptMouseInput = true;
             }
@@ -465,8 +454,8 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             public ushort Hue
             {
-                get => _label.Hue;
-                set => _label.Hue = value;
+                get => (ushort)_label.Hue;
+                set => _label.Hue = (ushort)value;
             }
 
             protected override bool OnMouseDoubleClick(int x, int y, MouseButtonType button)

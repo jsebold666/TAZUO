@@ -120,8 +120,18 @@ namespace ClassicUO.Game.Managers
                 {
                     WriteIndented = true
                 });
+
                 savePath = Path.Combine(ProfileManager.ProfilePath, "paperdollSelectCharManager.json");
+
+                string directoryPath = Path.GetDirectoryName(savePath);
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+
+
                 File.WriteAllText(savePath, json);
+
                 items.Clear();
             }
             catch (Exception ex)
