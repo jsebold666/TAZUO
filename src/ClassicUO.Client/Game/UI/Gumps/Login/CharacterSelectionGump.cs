@@ -142,8 +142,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                         new CharacterEntryGump((uint)i, character, bodyId, SelectCharacter, LoginCharacter)
                         {
                             X = 30 + posInList * 150,
-                            Y = yOffset + posInList * i + 3,
-                            Hue = i == _selectedCharacter ? SELECTED_COLOR : NORMAL_COLOR
+                            Y = yOffset + posInList * i + 3
                         },
                         1
                     );
@@ -404,7 +403,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                         .OrderBy(i => customLayerOrder.ContainsKey(i.Layer) ? customLayerOrder[i.Layer] : 0)
                         .ThenBy(i => i.Layer))
                     {
-                        if (item.Graphic > 0 && item.Layer != Layer.Bracelet || item.Graphic > 0 && item.Layer != Layer.Ring) // Certifique-se de que o graphic está presente
+                        if (item.Graphic > 0 && item.Layer != Layer.Bracelet || item.Graphic > 0 && item.Layer != Layer.Ring || item.Graphic > 0 && item.Layer != Layer.Backpack)
                         {
                             ushort id = GetAnimID(
                                 0x000C,
@@ -422,6 +421,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                             )
                             {
                                 AcceptMouseInput = true,
+
                                 IsPartialHue = item.IsPartialHue,
                                 CanLift = World.InGame
                                    && !World.Player.IsDead

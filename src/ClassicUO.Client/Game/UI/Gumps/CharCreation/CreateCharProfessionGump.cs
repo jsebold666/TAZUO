@@ -38,6 +38,7 @@ using ClassicUO.Game.UI.Controls;
 using ClassicUO.Input;
 using ClassicUO.Assets;
 using Microsoft.Xna.Framework;
+using Cyotek.Drawing.BitmapFont;
 
 namespace ClassicUO.Game.UI.Gumps.CharCreation
 {
@@ -167,7 +168,8 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
     internal class ProfessionInfoGump : Control
     {
         private readonly ProfessionInfo _info;
-
+        private GumpPic _gumpPic;
+        private static GumpPic _lastSelectedGumpPic;
         public ProfessionInfoGump(ProfessionInfo info)
         {
             _info = info;
@@ -183,7 +185,15 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                 );
 
 
-            Add(new GumpPic(121, -12, info.Graphic, 0));
+            _gumpPic = new GumpPic(121, -12, info.Graphic, 0);
+            Add(_gumpPic);
+
+            // Subscribing to events for hover effect
+            _gumpPic.MouseEnter += OnGumpPicMouseEnter;
+            _gumpPic.MouseExit += OnGumpPicMouseExit;
+            _gumpPic.MouseUp += OnGumpPicMouseUp;
+
+
         }
 
         public Action<ProfessionInfo> Selected;
@@ -196,6 +206,32 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             {
                 Selected?.Invoke(_info);
             }
+        }
+
+        private void OnGumpPicMouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtonType.Left)
+            {
+                // Se existir um GumpPic previamente selecionado, restaura sua opacidade
+                if (_lastSelectedGumpPic != null)
+                {
+                    _lastSelectedGumpPic.Alpha = 1.0f; // Restaura opacidade total
+                }
+
+                // Define o novo GumpPic clicado como selecionado
+                _gumpPic.Alpha = 0.5f; // Define opacidade reduzida (50%)
+                _lastSelectedGumpPic = _gumpPic; // Atualiza o GumpPic selecionado globalmente
+            }
+        }
+
+        private void OnGumpPicMouseEnter(object sender, EventArgs e)
+        {
+            _gumpPic.Alpha = 0.5f; // Set opacity to 50% on hover
+        }
+
+        private void OnGumpPicMouseExit(object sender, EventArgs e)
+        {
+            _gumpPic.Alpha = 1.0f; // Reset opacity to 100% when not hovered
         }
     }
 }

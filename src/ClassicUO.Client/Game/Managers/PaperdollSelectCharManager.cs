@@ -93,8 +93,7 @@ namespace ClassicUO.Game.Managers
                         {
                             if (mobile.Serial == World.Player.Serial)
                             {
-                                // Aqui você pode adicionar condições específicas para os layers, se necessário
-                                if (layer != Layer.Bracelet && layer != Layer.Earrings && layer != Layer.Ring)
+                                if (layer != Layer.Bracelet || layer != Layer.Earrings || layer != Layer.Ring || layer != Layer.Backpack)
                                 {
                                     AddItem(item.Serial.ToString(), item.Layer, item.Graphic, item.Hue, item.Serial, item.ItemData.AnimID, item.ItemData.IsPartialHue);
                                 }
@@ -115,23 +114,26 @@ namespace ClassicUO.Game.Managers
         {
             try
             {
-
-                string json = JsonSerializer.Serialize(items, new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                });
-
-                savePath = Path.Combine(ProfileManager.ProfilePath, "paperdollSelectCharManager.json");
-
                 string directoryPath = Path.GetDirectoryName(savePath);
                 if (!Directory.Exists(directoryPath))
                 {
                     Directory.CreateDirectory(directoryPath);
                 }
 
+  
+                if (File.Exists(savePath))
+                {
+                    File.WriteAllText(savePath, string.Empty);
+                }
+
+                string json = JsonSerializer.Serialize(items, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
 
                 File.WriteAllText(savePath, json);
 
+               
                 items.Clear();
             }
             catch (Exception ex)

@@ -45,6 +45,8 @@ using ClassicUO.Utility;
 using ClassicUO.Game.UI.Gumps.Login;
 using System.IO;
 using Microsoft.Xna.Framework;
+using Cyotek.Drawing.BitmapFont;
+using ClassicUO.Resources;
 
 namespace ClassicUO.Game.UI.Gumps.CharCreation
 {
@@ -70,6 +72,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
         private readonly ProfessionInfo _Parent;
         private HSliderBar[] _attributeSliders;
         private HSliderBar[] _hairSliders;
+        private bool _showSkills = false;
         private readonly Dictionary<Layer, int> CurrentOption = new Dictionary<Layer, int>
         {
             {
@@ -79,9 +82,13 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                 Layer.Beard, 0
             }
         };
+        private Combobox[] _skillsCombobox;
+        private HSliderBar[] _skillSliders;
+        private List<SkillEntry> _skillList;
 
         public void SelectProfession(ProfessionInfo info)
         {
+
             if (info.Type == ProfessionLoader.PROF_TYPE.CATEGORY && ProfessionLoader.Instance.Professions.TryGetValue(info, out List<ProfessionInfo> list) && list != null)
             {
                 Parent.Add(new CreateCharProfessionGump(info));
@@ -90,8 +97,125 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             else
             {
                 CharCreationGump charCreationGump = UIManager.GetGump<CharCreationGump>();
+                charCreationGump?.SetCharacter(_character);
 
                 charCreationGump?.SetProfession(info);
+                
+            }
+
+            if (!_showSkills && info.Name == "Advanced")
+            {
+                _showSkills = true;
+                DisplaySkills();
+
+            }
+
+            if (_showSkills && info.Name != "Advanced")
+            {
+                _showSkills = false;
+
+                RemoveSkillControls();
+            }
+
+            InputStatus(0, (int)_character.Strength);
+            InputStatus(1, (int)_character.Intelligence);
+            InputStatus(2, (int)_character.Dexterity);
+          
+        }
+
+        public void InputStatus(int array, int value)
+        {
+            _attributeSliders[array].Value = value;
+        }
+
+        private void RemoveSkillControls()
+        {
+            if (_skillsCombobox != null)
+            {
+                foreach (var comboBox in _skillsCombobox)
+                {
+                    if (comboBox != null)
+                        comboBox.Dispose(); // Remove o combobox da interface
+                }
+            }
+
+            if (_skillSliders != null)
+            {
+                foreach (var slider in _skillSliders)
+                {
+                    if (slider != null)
+                        slider.Dispose(); // Remove o slider da interface
+                }
+            }
+
+            _skillsCombobox = null; // Limpa a referência
+            _skillSliders = null;   // Limpa a referência
+        }
+
+        public void DisplaySkills()
+        {
+            if (_showSkills)
+            {
+                int y = 612;
+                int x = 370;
+                const int spacingX = 200;
+                const int spacingY = 70;
+
+                _skillSliders = new HSliderBar[CharCreationGump._skillsCount];
+                _skillsCombobox = new Combobox[CharCreationGump._skillsCount];
+
+                var skillNames = _skillList.Select(s => s.Name).ToArray();
+
+                for (int i = 0; i < CharCreationGump._skillsCount; i++)
+                {
+                    int column = i % 2;
+                    int row = i / 2;
+
+                    int posX = x + (column * spacingX);
+                    int posY = y + (row * spacingY);
+
+                    Add
+                    (
+                        _skillsCombobox[i] = new Combobox
+                        (
+                            posX,
+                            posY,
+                            182,
+                            skillNames,
+                            -1,
+                            200,
+                            false,
+                            "Click here"
+                        )
+                    );
+
+                    Add
+                    (
+                        _skillSliders[i] = new HSliderBar
+                        (
+                            posX,
+                            posY + 32,
+                            93,
+                            0,
+                            50,
+                            ProfessionInfo._VoidSkills[i, 1],
+                            HSliderBarStyle.MetalWidgetRecessedBar,
+                            true
+                        )
+                    );
+                }
+
+                // Adicionar sliders em pares para controle mútuo
+                for (int i = 0; i < _skillSliders.Length; i++)
+                {
+                    for (int j = 0; j < _skillSliders.Length; j++)
+                    {
+                        if (i != j)
+                        {
+                            _skillSliders[i].AddParisSlider(_skillSliders[j]);
+                        }
+                    }
+                }
             }
         }
 
@@ -223,58 +347,35 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             );
 
             // Races
+
+
             Add
             (
-                _humanRadio = new Button((int)Buttons.HumanButton, 0x0768, 0x0767)
+                _humanRadio = new Button((int) Buttons.HumanButton, 0x0702, 0x0704, 0x0703)
                 {
-                    X = 375, Y = 435, ButtonAction = ButtonAction.Activate
+                    X = 384, Y = 154, ButtonAction = ButtonAction.Activate
                 },
                 1
             );
 
-            Add
-            (
-                new Button((int) Buttons.HumanButton, 0x0702, 0x0704, 0x0703)
-                {
-                    X = 385, Y = 435, ButtonAction = ButtonAction.Activate
-                },
-                1
-            );
 
             Add
             (
-                _elfRadio = new Button((int)Buttons.ElfButton, 0x0768, 0x0767, 0x0768)
+                _elfRadio = new Button((int) Buttons.ElfButton, 0x0705, 0x0707, 0x0706)
                 {
-                    X = 385, Y = 475, ButtonAction = ButtonAction.Activate
-                },
-                1
-            );
-
-            Add
-            (
-                new Button((int) Buttons.ElfButton, 0x0705, 0x0707, 0x0706)
-                {
-                    X = 385, Y = 475, ButtonAction = ButtonAction.Activate
+                    X = 504, Y = 154, ButtonAction = ButtonAction.Activate
                 },
                 1
             );
 
             if (Client.Version >= ClientVersion.CV_60144)
             {
-                Add
-                (
-                    _gargoyleRadio = new Button((int)Buttons.GargoyleButton, 0x0768, 0x0767)
-                    {
-                        X = 385, Y = 495, ButtonAction = ButtonAction.Activate
-                    },
-                    1
-                );
 
                 Add
                 (
-                    new Button((int) Buttons.GargoyleButton, 0x07D3, 0x07D5, 0x07D4)
+                    _gargoyleRadio = new Button((int) Buttons.GargoyleButton, 0x07D3, 0x07D5, 0x07D4)
                     {
-                        X = 80, Y = 495, ButtonAction = ButtonAction.Activate
+                        X = 604, Y = 154, ButtonAction = ButtonAction.Activate
                     },
                     1
                 );
@@ -335,6 +436,9 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             // sliders for attributes
             _attributeSliders = new HSliderBar[3];
 
+            Microsoft.Xna.Framework.Color cor = Microsoft.Xna.Framework.Color.Orange;
+            ushort corConvertida = (ushort)(cor.R << 8 | cor.G);
+
             Add
             (
                 _attributeSliders[0] = new HSliderBar
@@ -346,7 +450,8 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     60,
                     ProfessionInfo._VoidStats[0],
                     HSliderBarStyle.MetalWidgetRecessedBar,
-                    true
+                    true,
+                    color: corConvertida
                 )
             ); 
 
@@ -380,11 +485,119 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                 )
             );
 
+            var clientFlags = World.ClientLockedFeatures.Flags;
+            /*
+            _skillList = SkillsLoader.Instance.SortedSkills
+                         .Where(s =>
+                                     // All standard client versions ignore these skills by defualt
+                                     //s.Index != 26 && // MagicResist
+                                     s.Index != 47 && // Stealth
+                                     s.Index != 48 && // RemoveTrap
+                                     s.Index != 54 && // Spellweaving
+                                     (_character.Race == RaceType.GARGOYLE || s.Index != 57) // Throwing for gargoyle only
+                                 )
+                          .Where(s =>
+                                    clientFlags.HasFlag(LockedFeatureFlags.ExpansionAOS) ||
+                                    (
+                                        s.Index != 51 && // Chivlary
+                                        s.Index != 50 && // Focus
+                                        s.Index != 49    // Necromancy
+                                    )
+                                )
+
+                          .Where(s =>
+                                    clientFlags.HasFlag(LockedFeatureFlags.ExpansionSE) ||
+                                    (
+                                        s.Index != 52 && // Bushido
+                                        s.Index != 53    // Ninjitsu
+                                    )
+                                )
+
+                          .Where(s =>
+                                    clientFlags.HasFlag(LockedFeatureFlags.ExpansionSA) ||
+                                    (
+                                        s.Index != 55 && // Mysticism
+                                        s.Index != 56    // Imbuing
+                                    )
+                                )
+                         .ToList();
+             // do not include archer if it's a gargoyle
+            if (_character.Race == RaceType.GARGOYLE)
+            {
+                var archeryEntry = _skillList.FirstOrDefault(s => s.Index == 31);
+                if (archeryEntry != null)
+                {
+                    _skillList.Remove(archeryEntry);
+                }
+            }
+             */
+
+            _skillList = SkillsLoader.Instance.SortedSkills.ToList();
+
+           
+
+            var skillNames = _skillList.Select(s => s.Name).ToArray();
+
+            int y = 612;
+            int x = 370;
+            const int spacingX = 200; 
+            const int spacingY = 70;  
+          
+           
+
+            
+
+            for (int i = 0; i < _attributeSliders.Length; i++)
+            {
+                for (int j = 0; j < _attributeSliders.Length; j++)
+                {
+                    if (i != j)
+                    {
+                        _attributeSliders[i].AddParisSlider(_attributeSliders[j]);
+                    }
+                }
+            }
+
+
             _characterInfo.IsFemale = false;
             _characterInfo.Race = RaceType.HUMAN;
 
             HandleGenreChange();
             HandleRaceChanged();
+
+            _character.Name = _nameTextBox.Text;
+            CharCreationGump charCreationGump = UIManager.GetGump<CharCreationGump>();
+
+            if (ValidateCharacter(_character))
+            {
+                charCreationGump.SetCharacter(_character);
+            }
+        }
+
+
+       
+
+        private bool ValidateValues()
+        {
+            if (_skillsCombobox.All(s => s.SelectedIndex >= 0))
+            {
+                int duplicated = _skillsCombobox.GroupBy(o => o.SelectedIndex).Count(o => o.Count() > 1);
+
+                if (duplicated > 0)
+                {
+                    UIManager.GetGump<CharCreationGump>()?.ShowMessage(ClilocLoader.Instance.GetString(1080032));
+
+                    return false;
+                }
+            }
+            else
+            {
+                UIManager.GetGump<CharCreationGump>()?.ShowMessage(Client.Version <= ClientVersion.CV_5090 ? ResGumps.YouMustHaveThreeUniqueSkillsChosen : ClilocLoader.Instance.GetString(1080032));
+
+                return false;
+            }
+
+            return true;
         }
 
         private void CreateCharacter(bool isFemale, RaceType race)
@@ -587,10 +800,6 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             bool unicode = isAsianLang;
             byte font = (byte)(isAsianLang ? 3 : 9);
             ushort hue = (ushort)(isAsianLang ? 0xFFFF : 0);
-
-
-
-          
 
             Add
             (
@@ -837,6 +1046,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
         {
             CharCreationGump charCreationGump = UIManager.GetGump<CharCreationGump>();
 
+
             switch ((Buttons) buttonID)
             {
                 case Buttons.FemaleButton:
@@ -918,6 +1128,35 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     {
                         charCreationGump.SetCharacter(_character);
                     }
+
+                    if (_showSkills)
+                    {
+                        if (ValidateValues())
+                        {
+                            for (int i = 0; i < _skillsCombobox.Length; i++)
+                            {
+                                if (_skillsCombobox[i].SelectedIndex != -1)
+                                {
+                                    Skill skill = _character.Skills[_skillList[_skillsCombobox[i].SelectedIndex].Index];
+                                    skill.ValueFixed = (ushort)_skillSliders[i].Value;
+                                    skill.BaseFixed = 0;
+                                    skill.CapFixed = 0;
+                                    skill.Lock = Lock.Locked;
+                                }
+                            }
+
+                           
+
+                            
+                        }
+
+                    }
+
+                    _character.Strength = (ushort)_attributeSliders[0].Value;
+                    _character.Intelligence = (ushort)_attributeSliders[1].Value;
+                    _character.Dexterity = (ushort)_attributeSliders[2].Value;
+
+                    charCreationGump.SetAttributes(true);
 
                     break;
 
