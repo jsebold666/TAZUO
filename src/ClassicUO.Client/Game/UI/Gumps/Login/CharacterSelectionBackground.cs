@@ -39,11 +39,11 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ClassicUO.Game.UI.Gumps.Login
 {
-    internal class LoginBackground : Gump
+    internal class CharacterSelectionBackground : Gump
     {
-        private Texture2D LoginBackgroundImg = PNGLoader.Instance.GetImageTexture(Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "loginbg.png"));
+        private Texture2D LoginBackgroundImg = PNGLoader.Instance.GetImageTexture(Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "characterbg.png"));
        
-        public LoginBackground() : base(0, 0)
+        public CharacterSelectionBackground() : base(0, 0)
         {
            
            

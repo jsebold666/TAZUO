@@ -42,23 +42,36 @@ using ClassicUO.Assets;
 using ClassicUO.Resources;
 using ClassicUO.Utility;
 using SDL2;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
+using System.Security.Cryptography;
+using ClassicUO.Renderer.Arts;
+using ClassicUO.Renderer;
+using ClassicUO.Game.GameObjects;
+using Cyotek.Drawing.BitmapFont;
+using System.IO;
 using System.Collections.Generic;
+using System.Text.Json;
+using ClassicUO.Game.UI.Controls;
+using static ClassicUO.Game.UI.Controls.PaperDollInteractable;
+using FontStashSharp.RichText;
+using Microsoft.Xna.Framework;
 
 namespace ClassicUO.Game.UI.Gumps.Login
 {
     internal class CharacterSelectionGump : Gump
     {
-        private const ushort SELECTED_COLOR = 0x0021;
-        private const ushort NORMAL_COLOR = 0x034F;
+        private const ushort SELECTED_COLOR = 0xAAF;
+        private const ushort NORMAL_COLOR = 0xAAF;
         private uint _selectedCharacter;
-        private CharacterEntryGump[] chars;
+        private ImageButton button;
+        private static Art art { get; set; }
 
         public CharacterSelectionGump() : base(0, 0)
         {
             CanCloseWithRightClick = false;
 
             int posInList = 0;
-            int yOffset = 150;
+            int yOffset = 320;
             int yBonus = 0;
             int listTitleY = 106;
 
@@ -73,7 +86,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
             if (Client.Version >= ClientVersion.CV_6040 || Client.Version >= ClientVersion.CV_5020 && loginScene.Characters.Length > 5)
             {
                 listTitleY = 96;
-                yOffset = 125;
+                yOffset = 320;
                 yBonus = 45;
             }
 
@@ -86,17 +99,6 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 _selectedCharacter = 0;
             }
 
-            Add
-            (
-                new ResizePic(0x0A28)
-                {
-                    X = 160,
-                    Y = 70,
-                    Width = 408,
-                    Height = 343 + yBonus
-                },
-                1
-            );
 
             bool isAsianLang = string.Compare(Settings.GlobalSettings.Language, "CHT", StringComparison.InvariantCultureIgnoreCase) == 0 ||
                 string.Compare(Settings.GlobalSettings.Language, "KOR", StringComparison.InvariantCultureIgnoreCase) == 0 ||
@@ -104,23 +106,19 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             bool unicode = isAsianLang;
             byte font = (byte)(isAsianLang ? 1 : 2);
-            ushort hue = (ushort)(isAsianLang ? 0xFFFF : 0x0386);
+            ushort hue = (ushort)(isAsianLang ? 0 : 0);
 
             Add
-            (
-                new Label(ClilocLoader.Instance.GetString(3000050, "Character Selection"), unicode, hue, font: font)
-                {
-                    X = 267,
-                    Y = listTitleY
-                },
-                1
-            );
+               (
+                   new TextBox(ClilocLoader.Instance.GetString(3000050, "Character Selection"), TrueTypeLoader.EMBEDDED_FONT, 30, 300, Color.Orange, strokeEffect: true) { X = 447, Y = listTitleY, AcceptMouseInput = true }
 
-            List<CharacterEntryGump> gumps = new List<CharacterEntryGump>();
+               );
+
 
             for (int i = 0, valid = 0; i < loginScene.Characters.Length; i++)
             {
                 string character = loginScene.Characters[i];
+                uint bodyId = loginScene.GetCharacterBodyID(i);
 
                 if (!string.IsNullOrEmpty(character))
                 {
@@ -139,23 +137,19 @@ namespace ClassicUO.Game.UI.Gumps.Login
                         }
                     }
 
-                    CharacterEntryGump g;
                     Add
-                    (g =
-                        new CharacterEntryGump((uint)i, character, SelectCharacter, LoginCharacter)
+                    (
+                        new CharacterEntryGump((uint)i, character, bodyId, SelectCharacter, LoginCharacter)
                         {
-                            X = 224,
-                            Y = yOffset + posInList * 40,
-                            Hue = i == _selectedCharacter ? SELECTED_COLOR : NORMAL_COLOR
+                            X = 30 + posInList * 150,
+                            Y = yOffset + posInList * i + 3
                         },
                         1
                     );
-                    gumps.Add(g);
 
                     posInList++;
                 }
             }
-            chars = gumps.ToArray();
 
             if (CanCreateChar(loginScene))
             {
@@ -163,8 +157,8 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 (
                     new Button((int)Buttons.New, 0x159D, 0x159F, 0x159E)
                     {
-                        X = 224,
-                        Y = 350 + yBonus,
+                        X = 30,
+                        Y = 210 + yBonus,
                         ButtonAction = ButtonAction.Activate
                     },
                     1
@@ -175,34 +169,39 @@ namespace ClassicUO.Game.UI.Gumps.Login
             (
                 new Button((int)Buttons.Delete, 0x159A, 0x159C, 0x159B)
                 {
-                    X = 442,
-                    Y = 350 + yBonus,
+                    X = 940,
+                    Y = 210 + yBonus,
                     ButtonAction = ButtonAction.Activate
                 },
                 1
             );
 
-            Add
-            (
-                new Button((int)Buttons.Prev, 0x15A1, 0x15A3, 0x15A2)
-                {
-                    X = 586,
-                    Y = 445,
-                    ButtonAction = ButtonAction.Activate
-                },
-                1
-            );
+            Add(button = new ImageButton(
+                30,
+                680,
+                Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_normal_prev.png"),
+                Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_pressed_prev.png"),
+                Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_hover_prev.png")
+            ));
 
-            Add
-            (
-                new Button((int)Buttons.Next, 0x15A4, 0x15A6, 0x15A5)
-                {
-                    X = 610,
-                    Y = 445,
-                    ButtonAction = ButtonAction.Activate
-                },
-                1
-            );
+            button.OnButtonClick += () =>
+            {
+                OnButtonClick(3);
+            };
+
+            Add(button = new ImageButton(
+               920,
+               680,
+               Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_normal_next.png"),
+               Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_pressed_next.png"),
+               Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "btn_hover_next.png")
+           ));
+
+            button.OnButtonClick += () =>
+            {
+                OnButtonClick(2);
+            };
+
 
             AcceptKeyboardInput = true;
             ChangePage(1);
@@ -241,34 +240,6 @@ namespace ClassicUO.Game.UI.Gumps.Login
             }
         }
 
-        protected override void OnMouseWheel(MouseEventType delta)
-        {
-            base.OnMouseWheel(delta);
-
-            int i = 0;
-            foreach (CharacterEntryGump characterGump in chars)
-            {
-                if (characterGump.CharacterIndex == _selectedCharacter)
-                    break;
-                i++;
-            }
-
-            if (MouseEventType.WheelScrollUp == delta)
-            {
-                if (i == 0)
-                    _selectedCharacter = chars[chars.Length - 1].CharacterIndex;
-                else
-                    _selectedCharacter = chars[i - 1].CharacterIndex;
-            }
-            else
-            {
-                if (i == chars.Length - 1)
-                    _selectedCharacter = chars[0].CharacterIndex;
-                else
-                    _selectedCharacter = chars[i + 1].CharacterIndex;
-            }
-            SelectCharacter(_selectedCharacter);
-        }
         public override void OnButtonClick(int buttonID)
         {
             LoginScene loginScene = Client.Game.GetScene<LoginScene>();
@@ -286,6 +257,9 @@ namespace ClassicUO.Game.UI.Gumps.Login
                     break;
 
                 case Buttons.Next:
+                    UIManager.GetGump<LoginBackground>()?.Dispose();
+                    UIManager.GetGump<CharacterSelectionBackground>()?.Dispose();
+                    UIManager.GetGump<SelectServerBackground>()?.Dispose();
                     LoginCharacter(_selectedCharacter);
 
                     break;
@@ -353,6 +327,9 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             if (loginScene.Characters != null && loginScene.Characters.Length > index && !string.IsNullOrEmpty(loginScene.Characters[index]))
             {
+                UIManager.GetGump<LoginBackground>()?.Dispose();
+                UIManager.GetGump<CharacterSelectionBackground>()?.Dispose();
+                UIManager.GetGump<SelectServerBackground>()?.Dispose();
                 loginScene.SelectCharacter(index);
             }
         }
@@ -367,44 +344,108 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
         private class CharacterEntryGump : Control
         {
-            private readonly Label _label;
+            private readonly TextBox _label;
             private readonly Action<uint> _loginFn;
             private readonly Action<uint> _selectedFn;
+            private readonly uint _bodyID;
+            private static Art art { get; set; }
+            private static PlayerMobile _character;
+            private PaperDollInteractable _paperDoll;
+            private readonly string savePath;
 
-            public CharacterEntryGump(uint index, string character, Action<uint> selectedFn, Action<uint> loginFn)
+            public Dictionary<string, PaperdollItem> Load()
+            {
+                if (File.Exists(savePath))
+                {
+                    try
+                    {
+                        string json = File.ReadAllText(savePath);
+                        return JsonSerializer.Deserialize<Dictionary<string, PaperdollItem>>(json) ?? new Dictionary<string, PaperdollItem>();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to load marked tile data: {ex.Message}");
+                        return null;
+                    }
+                }
+                return null;
+            }
+
+
+            public CharacterEntryGump(uint index, string character, uint bodyID, Action<uint> selectedFn, Action<uint> loginFn)
             {
                 CharacterIndex = index;
+                _bodyID = bodyID;
                 _selectedFn = selectedFn;
                 _loginFn = loginFn;
-
+                savePath = Path.Combine(CUOEnviroment.ExecutablePath, "Data", "Profiles", Settings.GlobalSettings.Username, World.ServerName, character, "paperdollSelectCharManager.json");
+                var items = Load();
                 // Bg
-                Add
-                (
-                    new ResizePic(0x0BB8)
+                Add(new GumpPic(0, 0, 0x000C, 0) { IsPartialHue = true }.ScaleWidthAndHeight(Scale).SetInternalScale(Scale));
+
+                Mobile mobiles = World.Mobiles.Get(LocalSerial);
+
+                if (items != null && savePath != null)
+                {
+                    var customLayerOrder = new Dictionary<Layer, int>
                     {
-                        X = 0,
-                        Y = 0,
-                        Width = 280,
-                        Height = 30
+                    { Layer.Helmet, 7 },
+                    { Layer.Robe, 6},
+                    { Layer.Hair, 5 },
+                    { Layer.Beard, 4 },
+                    { Layer.Waist, 3 },
+                    { Layer.OneHanded, 2},
+                    { Layer.TwoHanded, 2 },
+                    { Layer.Talisman, 1 }
+                    };
+
+                    foreach (var item in items.Values
+                        .OrderBy(i => customLayerOrder.ContainsKey(i.Layer) ? customLayerOrder[i.Layer] : 0)
+                        .ThenBy(i => i.Layer))
+                    {
+                        if (item.Graphic > 0 && item.Layer != Layer.Bracelet || item.Graphic > 0 && item.Layer != Layer.Ring || item.Graphic > 0 && item.Layer != Layer.Backpack)
+                        {
+                            ushort id = GetAnimID(
+                                0x000C,
+                                item.AnimID,
+                                false
+                            );
+
+                            Add(new GumpPicEquipment(
+                               item.Serial,
+                               0,
+                               0,
+                               id,
+                               (ushort)(item.Hue & 0xFFFF),
+                                item.Layer
+                            )
+                            {
+                                AcceptMouseInput = true,
+
+                                IsPartialHue = item.IsPartialHue,
+                                CanLift = World.InGame
+                                   && !World.Player.IsDead
+                                   && LocalSerial == World.Player,
+                            }.ScaleWidthAndHeight(Scale).SetInternalScale(InternalScale));
+                        }
                     }
-                );
+                }
+                else
+                {
+                    Add(new GumpPic(1, 1, 0xC4E9, 0));
+                    Add(new GumpPic(1, 1, 0xC502, 0));
+                    Add(new GumpPic(1, 1, 0xC4FE, 0));
+                    Add(new GumpPic(1, 1, 0xC530, 0));
+                }
 
                 // Char Name
+
+
                 Add
-                (
-                    _label = new Label
-                    (
-                        character,
-                        false,
-                        NORMAL_COLOR,
-                        270,
-                        5,
-                        align: TEXT_ALIGN_TYPE.TS_CENTER
-                    )
-                    {
-                        X = 0
-                    }
-                );
+               (
+                   _label = new TextBox(character, TrueTypeLoader.EMBEDDED_FONT, 16, 190, Color.Orange, align: TextHorizontalAlignment.Center, strokeEffect: true) { AcceptMouseInput = true }
+
+               );
 
                 AcceptMouseInput = true;
             }
@@ -413,8 +454,8 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             public ushort Hue
             {
-                get => _label.Hue;
-                set => _label.Hue = value;
+                get => (ushort)_label.Hue;
+                set => _label.Hue = (ushort)value;
             }
 
             protected override bool OnMouseDoubleClick(int x, int y, MouseButtonType button)
