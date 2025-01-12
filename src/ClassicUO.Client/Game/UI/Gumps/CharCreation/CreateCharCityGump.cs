@@ -129,7 +129,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             if (Client.Version >= ClientVersion.CV_70130)
             {
                 Add(new GumpPic(62, 54, (ushort) (0x15D9 + map), 0));
-                Add(new GumpPic(57, 49, 0x15DF, 0));
+               
                 _facetName.Text = _cityNames[map];
             }
             else
@@ -176,10 +176,10 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
             _htmlControl = new HtmlControl
             (
-                452,
-                60,
-                175,
-                367,
+                475,
+                475,
+                200,
+                400,
                 true,
                 true,
                 ishtml: true,

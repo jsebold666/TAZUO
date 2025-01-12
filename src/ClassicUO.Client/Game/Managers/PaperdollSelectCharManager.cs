@@ -37,7 +37,7 @@ namespace ClassicUO.Game.Managers
     {
         public static PaperdollSelectCharManager Instance => instance ??= new PaperdollSelectCharManager();
 
-        private Dictionary<string, PaperdollItem> items = new Dictionary<string, PaperdollItem>();
+        public Dictionary<string, PaperdollItem> items = new Dictionary<string, PaperdollItem>();
 
         private string savePath = Path.Combine(ProfileManager.ProfilePath, "paperdollSelectCharManager.json");
 
@@ -81,6 +81,7 @@ namespace ClassicUO.Game.Managers
         {
             try
             {
+                items.Clear();
                 Mobile mobile = World.Mobiles.Get(World.Player.Serial);
 
                 if (mobile != null)
@@ -120,7 +121,7 @@ namespace ClassicUO.Game.Managers
                     Directory.CreateDirectory(directoryPath);
                 }
 
-  
+ 
                 if (File.Exists(savePath))
                 {
                     File.WriteAllText(savePath, string.Empty);
@@ -133,7 +134,7 @@ namespace ClassicUO.Game.Managers
 
                 File.WriteAllText(savePath, json);
 
-               
+
                 items.Clear();
             }
             catch (Exception ex)

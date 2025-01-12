@@ -64,6 +64,8 @@ namespace ClassicUO.Game.UI.Gumps.Login
         private const ushort NORMAL_COLOR = 0xAAF;
         private uint _selectedCharacter;
         private ImageButton button;
+        private CharacterEntryGump _characterEntryGump;
+        private CharacterEntryGump _lastSelectedGumpPic;
         private static Art art { get; set; }
 
         public CharacterSelectionGump() : base(0, 0)
@@ -139,13 +141,15 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
                     Add
                     (
-                        new CharacterEntryGump((uint)i, character, bodyId, SelectCharacter, LoginCharacter)
+                        _characterEntryGump = new CharacterEntryGump((uint)i, character, bodyId, SelectCharacter, LoginCharacter, SelectCharacterHover)
                         {
                             X = 30 + posInList * 150,
                             Y = yOffset + posInList * i + 3
                         },
                         1
                     );
+
+
 
                     posInList++;
                 }
@@ -205,6 +209,32 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             AcceptKeyboardInput = true;
             ChangePage(1);
+        }
+
+        private void OnGumpPicMouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtonType.Left)
+            {
+                // Se existir um GumpPic previamente selecionado, restaura sua opacidade
+                if (_lastSelectedGumpPic != null)
+                {
+                    _lastSelectedGumpPic.Alpha = 1.0f; // Restaura opacidade total
+                }
+
+                // Define o novo GumpPic clicado como selecionado
+                _characterEntryGump.Alpha = 0.5f; // Define opacidade reduzida (50%)
+                _lastSelectedGumpPic = _characterEntryGump; // Atualiza o GumpPic selecionado globalmente
+            }
+        }
+
+        private void OnGumpPicMouseEnter(object sender, EventArgs e)
+        {
+            _characterEntryGump.Alpha = 0.5f; // Set opacity to 50% on hover
+        }
+
+        private void OnGumpPicMouseExit(object sender, EventArgs e)
+        {
+            _characterEntryGump.Alpha = 1.0f; // Reset opacity to 100% when not hovered
         }
 
         private bool CanCreateChar(LoginScene scene)
@@ -321,6 +351,28 @@ namespace ClassicUO.Game.UI.Gumps.Login
             }
         }
 
+        private void SelectCharacterHover(uint index)
+        {
+            _selectedCharacter = index;
+
+            foreach (CharacterEntryGump characterGump in FindControls<CharacterEntryGump>())
+            {
+                characterGump.Hue = characterGump.CharacterIndex == index ? SELECTED_COLOR : NORMAL_COLOR;
+                characterGump.Alpha = 0.5f; // Set opacity to 50% on hover
+            }
+        }
+
+        private void SelectCharacterUnHover(uint index)
+        {
+            _selectedCharacter = index;
+
+            foreach (CharacterEntryGump characterGump in FindControls<CharacterEntryGump>())
+            {
+                characterGump.Hue = characterGump.CharacterIndex == index ? SELECTED_COLOR : NORMAL_COLOR;
+                characterGump.Alpha = 0.5f; // Set opacity to 50% on hover
+            }
+        }
+
         private void LoginCharacter(uint index)
         {
             LoginScene loginScene = Client.Game.GetScene<LoginScene>();
@@ -347,6 +399,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
             private readonly TextBox _label;
             private readonly Action<uint> _loginFn;
             private readonly Action<uint> _selectedFn;
+            private readonly Action<uint> _hoverFn;
             private readonly uint _bodyID;
             private static Art art { get; set; }
             private static PlayerMobile _character;
@@ -372,14 +425,17 @@ namespace ClassicUO.Game.UI.Gumps.Login
             }
 
 
-            public CharacterEntryGump(uint index, string character, uint bodyID, Action<uint> selectedFn, Action<uint> loginFn)
+            public CharacterEntryGump(uint index, string character, uint bodyID, Action<uint> selectedFn, Action<uint> loginFn, Action<uint> hoverFn)
             {
                 CharacterIndex = index;
                 _bodyID = bodyID;
                 _selectedFn = selectedFn;
+                _hoverFn = hoverFn;
                 _loginFn = loginFn;
                 savePath = Path.Combine(CUOEnviroment.ExecutablePath, "Data", "Profiles", Settings.GlobalSettings.Username, World.ServerName, character, "paperdollSelectCharManager.json");
                 var items = Load();
+
+
                 // Bg
                 Add(new GumpPic(0, 0, 0x000C, 0) { IsPartialHue = true }.ScaleWidthAndHeight(Scale).SetInternalScale(Scale));
 
@@ -478,6 +534,17 @@ namespace ClassicUO.Game.UI.Gumps.Login
                     _selectedFn(CharacterIndex);
                 }
             }
+
+            protected override void OnMouseOver(int x, int y)
+            {
+                _hoverFn(CharacterIndex);
+            }
+
+            protected override void OnMouseExit(int x, int y)
+            {
+                _hoverFn(CharacterIndex);
+            }
+
         }
     }
 }
