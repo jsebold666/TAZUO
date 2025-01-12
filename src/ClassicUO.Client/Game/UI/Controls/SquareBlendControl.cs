@@ -30,62 +30,58 @@
 
 #endregion
 
-using ClassicUO.Assets;
-using ClassicUO.Game.UI.Controls;
-using ClassicUO.Utility;
-using System.IO;
+using ClassicUO.Renderer;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
-namespace ClassicUO.Game.UI.Gumps.Login
+namespace ClassicUO.Game.UI.Controls
 {
-    internal class LoginBackground : Gump
+    public sealed class SquareBlendControl : Control
     {
-        private Texture2D LoginBackgroundImg = PNGLoader.Instance.GetImageTexture(Path.Combine(CUOEnviroment.ExecutablePath, "ExternalImages", "loginbg.png"));
-       
-        public LoginBackground() : base(0, 0)
+        private Vector3 hueVector;
+        private ushort hue;
+
+        public SquareBlendControl(float alpha = 1.0f)
         {
-           
-           
-                // Background
-                Add
-                (
-                    new CustomGumpPic
-                    (
-                        0,
-                        0,
-                        LoginBackgroundImg,
-                        0
-                    )
-                );
-
-
-
-                // Quit Button
-                Add
-                (
-                    new Button(0, 0x1589, 0x158B, 0x158A)
-                    {
-                        X = 980,
-                        Y = 0,
-                        ButtonAction = ButtonAction.Activate,
-                        AcceptKeyboardInput = false
-                    }
-                );
-            
-
-
-            CanCloseWithEsc = false;
-            CanCloseWithRightClick = false;
-            AcceptKeyboardInput = false;
-
-            LayerOrder = UILayer.Under;
+            Alpha = alpha;
+            AcceptMouseInput = false;
+            hueVector = ShaderHueTranslator.GetHueVector(Hue, false, Alpha);
         }
 
-
-        public override void OnButtonClick(int buttonID)
+        public ushort Hue
         {
-            Client.Game.Exit();
+            get => hue; set
+            {
+                hue = value;
+                hueVector = ShaderHueTranslator.GetHueVector(Hue, false, Alpha);
+            }
+        }
+
+        public Color BaseColor { get; set; } = Color.Black;
+
+        public override void AlphaChanged(float oldValue, float newValue)
+        {
+            base.AlphaChanged(oldValue, newValue);
+            hueVector = ShaderHueTranslator.GetHueVector(Hue, false, Alpha);
+        }
+
+        public override bool Draw(UltimaBatcher2D batcher, int x, int y)
+        {
+            Vector3 hueVector = ShaderHueTranslator.GetHueVector(Hue, false, Alpha);
+
+            batcher.Draw
+            (
+                SolidColorTextureCache.GetTexture(BaseColor),
+                new Rectangle
+                (
+                    x,
+                    y,
+                    Width,
+                    Height
+                ),
+                hueVector
+            );
+
+            return true;
         }
     }
 }
